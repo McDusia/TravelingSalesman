@@ -4,7 +4,6 @@ from mpi4py import MPI
 
 n = 4
 matrix = [[0 for _ in range(n)] for _ in range(n)]
-a_min = 1000
 best_visited_nodes_order = [0 for _ in range(n)]
 
 
@@ -36,14 +35,14 @@ def bbsearch():
     print("VisitedNodesOrder, lets start...")
     print(visited_nodes_order)
 
-    bbsearch_1(0, 0, visited_nodes_order, 0, 0)
+    minimum = bbsearch_1(0, 0, visited_nodes_order, 0, 0, 1000)
+    print(minimum)
 
 
-def bbsearch_1(prev_node, current_node_nr, visited_nodes_order, current_solution, visited_nodes_quantity):
+def bbsearch_1(prev_node, current_node_nr, visited_nodes_order, current_solution, visited_nodes_quantity, a_min):
     score = evaluate(prev_node, current_node_nr, current_solution)
     current_solution = score
     print("Score ", score)
-    global a_min
     global n
     if score <= a_min:
         visited_nodes_order[visited_nodes_quantity] = current_node_nr
@@ -59,7 +58,7 @@ def bbsearch_1(prev_node, current_node_nr, visited_nodes_order, current_solution
                 global best_visited_nodes_order
                 best_visited_nodes_order = visited_nodes_order
                 print("Now, VisitedNodesOrder ", visited_nodes_order)
-                return visited_nodes_order
+                return a_min
             else:
                 print("Unfortunately, such order has not cycle")
                 tab = [-1 for _ in range(n)]
@@ -67,25 +66,29 @@ def bbsearch_1(prev_node, current_node_nr, visited_nodes_order, current_solution
                     tab[i] = -1
                 return tab
         else:
+            a_mins = [1000 for _ in range(n)]
+            j = 0
             for i in range(n):
                 print(" Zobaczmy ", current_node_nr, i)
                 print("Aktualne visited_nodes_order: ", visited_nodes_order)
+
                 if matrix[current_node_nr][i] != 0 and i not in visited_nodes_order:
                     print("Call b&bsearch_1 for ", current_node_nr, ",", i)
-                    bbsearch_1(current_node_nr, i, copy.deepcopy(visited_nodes_order), current_solution, visited_nodes_quantity)
-            print("OK, I (", current_node_nr, ") want to finish, I called for children.")
+                    minimal = bbsearch_1(current_node_nr, i, copy.deepcopy(visited_nodes_order), current_solution,
+                                         visited_nodes_quantity, a_min)
+                    a_mins[j] = minimal
+                    j += 1
+
+            print("OK, I (", current_node_nr, ") want to finish, I called for children. My minimum: ", min(a_mins))
+            return min(a_mins)
     print("OK, I (", current_node_nr, ") want to finish. My solution is worse than CurrentSolution")
-    tab = [-1 for _ in range(n)]
-    for i in range(n):
-        tab[i] = -1
-    return tab
+    return -1
 
 
 def traveling_salesman_problem_solver():
     print("Problem Komiwojaźera")
     create_graph_matrix()
     bbsearch()
-    print(a_min)
     print(best_visited_nodes_order)
 
 
